@@ -1,4 +1,4 @@
-Copyright 2016 Crown Copyright
+Copyright 2016-2017 Crown Copyright
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,76 +17,91 @@ limitations under the License.
 Gaffer
 ======
 
-Gaffer is a framework for building systems that can store and process graphs. It is designed to be as flexible, scalable and extensible as possible,
-allowing for rapid prototyping and transition to production systems or for enterprises where multiple graphs need to work together within a common framework.
+Gaffer is a graph database framework. It allows the storage of very large graphs containing rich properties on the nodes and edges. Several storage options are available, including Accumulo, Hbase and Parquet.
 
-Gaffer is different from other graph frameworks because:
+It is designed to be as flexible, scalable and extensible as possible, allowing for rapid prototyping and transition to production systems.
 
- - Its data model is very general. It should be possible to store simple graphs where the nodes are just integers as well as complex, directed or undirected multigraphs,
- property graphs and so on. In fact, Gaffer does not even require there to be any edges so it could be used for machine learning applications where it is necessary to
- keep feature vectors describing a set of items up to date.
- - Nodes and edges in the store can have statistics such as counts, histograms and sketches that represent their properties.
-Gaffer provides a pluggable way of using any suitable libraries to serialise, summarise, filter and transform these statistics.
- - Application developers can turn any database into a Gaffer store by implementing a small number of simple methods. This means that they can easily tailor the store to their particular needs by choosing a suitable underlying database.
- - A Gaffer graph is managed using a simple schema. The schema describes the structure of the nodes and edges and the libraries used to summarise, filter,
- transform and validate them. It also describes how the nodes and edges are serialised and mapped into the store. This schema enable new node or edge types to be
- easily added to the graph and make it extremely simple to update the libraries used for managing existing data. The schema can be split and modularised to allow the same data
- to be easily migrated or stored and queried across multiple different stores.
- - Query and processing of data in the Gaffer store is done using Gaffer Operations. These allow the user to specify flexible views on the data. For example, we may
- have a graph containing a range of edge types such as red, green and blue. At query time we can choose to view only red edges within a certain time window.
+Gaffer offers:
 
-Gaffer On Accumulo
-------------------
+ - Rapid query across very large numbers of nodes and edges;
+ - Continual ingest of data at very high data rates, and batch bulk ingest of data via MapReduce or Spark;
+ - Storage of arbitrary Java objects on the nodes and edges;
+ - Automatic, user-configurable in-database aggregation of rich statistical properties (e.g. counts, histograms, sketches) on the nodes and edges;
+ - Versatile query-time summarisation, filtering and transformation of data;
+ - Fine grained data access controls;
+ - Hooks to apply policy and compliance rules to queries;
+ - Automated, rule-based removal of data (typically used to age-off old data);
+ - Retrieval of graph data into Apache Spark for fast and flexible analysis;
+ - A fully-featured REST API.
 
-Gaffer's Accumulo Store is optimised for:
+To get going with Gaffer, visit our [getting started pages](https://gchq.github.io/gaffer-doc/summaries/getting-started.html).
 
- - Ingesting large amounts of data efficiently. For example, if the edges in a graph have a count statistic, then when there is a new
-observation of an edge, the edge can simply be inserted into the graph with a count of 1. If this
-edge already exists in the graph then this count of 1 will be added onto the existing edge. The ability to
-do these updates without the need for query-update-put is key to the ability to ingest large volumes
-of data.
- - Dealing with data at different security levels - nodes and edges could have a visibility property, and this is used to restrict who can
-see data based on their authorizations.
- - Summarising data within the store itself using Accumulo's iterator stack for efficient server-side merging of properties and for query time filtering of results.
-Properties are stored separately
-for different time windows, e.g. we may choose to store daily summaries of properties. This allows age-off
-of old properties, or of edges that have not been seen for a given period. It also allows the user
-to specify a time period of interest at query-time, and Gaffer will aggregate the properties over
-that time window before returning the results to the user.
+Gaffer is under active development. Version 1.0 of Gaffer was released in October 2017.
 
-Relationship to Gaffer1
------------------------
+License
+-------
 
-Gaffer1 was a large scale graph database built on Accumulo that allowed the properties stored on edges and entities in the graph to be efficiently maintained on ingest
-and dynamically summarised at query time inside the store itself. While it performed extremely well, Gaffer1 had a few drawbacks. For example, the schema for
-representing graph elements was fixed, the serialisation of the elements and the functions used to manage their properties were not easily extended and the implementation
-was quite tightly coupled to Accumulo.
+Gaffer is licensed under the Apache 2 license.
 
-One of the guiding principles during development of Gaffer2 has been that it should be possible to use it to completely reproduce the functionality and performance of Gaffer1.
-As a result, Gaffer1 now becomes a specific configuration of Gaffer, namely the 'type-value' graph where the Store is Accumulo.
+Getting Started
+---------------
 
-The name Gaffer now generally refers to Gaffer2. Gaffer1 and Gaffer2 will only be explicitly referenced where a clear differentiation is needed.
+### Try it out
 
-Status
-------
+We have a demo available to try that is based around a small uk road use dataset. See the example/road-traffic [README](https://github.com/gchq/Gaffer/blob/master/example/road-traffic/README.md) to try it out.
 
-Gaffer is still under active development. As a result, it shouldn't be considered a finished product. There is still performance testing and bug fixing to do, new features
-to be added and additional documentation to write. Please contribute.
+### Building and Deploying
 
-Building and Deploying
-----------------------
+To build Gaffer run `mvn clean install -Pquick` in the top-level directory. This will build all of Gaffer's core libraries and some examples of how to load and query data.
 
-To build Gaffer run `mvn clean package` in the top-level directory. This will build all of Gaffer's core libraries, the Accumulo store and some examples of how to load and query data and write other stores.
+See our [Store](https://gchq.github.io/gaffer-doc/summaries/stores.html) documentation page for a list of available Gaffer Stores to chose from and the relevant documentation for each.
 
-The Accumulo store needs to run on a Hadoop cluster with Accumulo installed. After building the project, the following jars need to be installed on all of Accumulo's tablet servers' classpaths.
+### Inclusion in other projects
 
- - The Accumulo iterators jar, located at `accumulo-store/target/accumulo-store-iterators-X.jar`
- - The jar containing the functions used for managing the graph data in Accumulo, located at `simple-function-library/target/simple-function-library-X.jar`
- - The jar containing the serialisers for the data, located at `simple-serialisation-library/target/simple-serialisation-library-X.jar`
- - Any jars that contain custom functions or serialisers you want to use to serialise or manage the data in Accumulo.
+Gaffer is hosted on [Maven Central](https://mvnrepository.com/search?q=uk.gov.gchq.gaffer) and can easily be incorporated into your own maven projects.
 
-Adding files to Accumulo's tablet server classpaths is typically done by putting the jar in the lib directory within Accumulo's directory.
+To use Gaffer from the Java API the only required dependencies are the Gaffer graph module and a store module for the specific database technology used to store the data, e.g. for the Accumulo store:
 
-There is a getting started guide on our wiki: [Getting Started](https://github.com/GovernmentCommunicationsHeadquarters/Gaffer/wiki/Getting-Started).
+```
+<dependency>
+    <groupId>uk.gov.gchq.gaffer</groupId>
+    <artifactId>graph</artifactId>
+    <version>${gaffer.version}</version>
+</dependency>
+<dependency>
+    <groupId>uk.gov.gchq.gaffer</groupId>
+    <artifactId>accumulo-store</artifactId>
+    <version>${gaffer.version}</version>
+</dependency>
+```
 
-Our Javadoc can be found [here](http://governmentcommunicationsheadquarters.github.io/Gaffer/).
+This will include all other mandatory dependencies. Other (optional) components can be added to your project as required.
+
+### Documentation
+
+Our Javadoc can be found [here](http://gchq.github.io/Gaffer/).
+
+We have some user guides in our [docs](https://gchq.github.io/gaffer-doc/getting-started/user-guide/contents.html).
+
+Related repositories
+--------------------
+
+The [gaffer-tools](https://github.com/gchq/gaffer-tools) repository contains useful tools to help work with Gaffer. These include:
+
+- `jar-shader` - Used to shade the version of Jackson to avoid incompatibility problems on CDH clusters;
+- `mini-accumulo-cluster` - Allows a mini Accumulo cluster to be spun up for testing purposes;
+- `performance-testing` - Methods of testing the peformance of ingest and query operations against a graph;
+- `python-shell` - Allows operations against a graph to be executed from a Python shell;
+- `random-element-generation` - Code to generate large volumes of random graph data;
+- `schema-builder` - A (beta) visual tool for writing schemas for a graph;
+- `slider` - Code to deploy a Gaffer cluster to a YARN cluster using [Apache Slider](https://slider.incubator.apache.org/), including the ability to easily run Slider on an [AWS EMR cluster](https://aws.amazon.com/emr/);
+- `ui` - A basic graph visualisation tool.
+
+Contributing
+------------
+
+We welcome contributions to the project. Detailed information on our ways of working can be found [here](https://gchq.github.io/gaffer-doc/other/ways-of-working.html). In brief:
+
+- Sign the [GCHQ Contributor Licence Agreement](https://github.com/gchq/Gaffer/wiki/GCHQ-OSS-Contributor-License-Agreement-V1.0);
+- Push your changes to a fork;
+- Submit a pull request.
